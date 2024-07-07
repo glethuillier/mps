@@ -1,0 +1,74 @@
+syntax = "proto3";
+option go_package = "lib/pkg/messages";
+
+enum MessageType {
+  TRANSFER_PREFLIGHT = 0;
+  TRANSFER_FILE = 1;
+  TRANSFER_ACK = 2;
+  DOWNLOAD_REQUEST = 3;
+}
+
+// requests from client to server
+message WrapperMessage {
+  MessageType type = 1;
+  string requestId = 2;
+  bytes payload = 3;
+}
+
+enum HashAlgorithm {
+  SHA256 = 0;
+  SHA512 = 1;
+}
+
+message TransferPreflight {
+  HashAlgorithm hashAlgorithm = 1;
+  repeated string filenames = 2;
+}
+
+message DownloadRequest {
+  string receiptId = 1;
+  string filename = 2;
+}
+
+// responses from server to client
+
+message MissingFiles {
+  repeated string filename = 1;
+}
+
+message TransferAck {
+  oneof string_or_array {
+    // ok: transfer receipt corresponding to the root hash
+    string receipt = 1;
+
+    string error = 2;
+
+    // error: at least one file is missing
+    MissingFiles missingFiles = 3;
+  }
+}
+
+// proofs
+
+enum SiblingType {
+  NoSibling = 0;
+  LeftSibling = 1;
+  RightSibling = 2;
+}
+
+message ProofPart {
+  SiblingType siblingType = 1;
+  string siblingHash = 2;
+}
+
+// two-way messages
+
+message TransferFile {
+  string filename = 1;
+  bytes contents = 2;
+
+  // a proof is composed of multiple parts
+  repeated ProofPart proof = 3;
+
+  optional string error = 4;
+}

@@ -1,0 +1,20 @@
+services:
+
+  server:
+    build:
+      context: .
+      dockerfile: ./server/Dockerfile
+    environment:
+      - PORT=3000
+      - LOG_LEVEL=DEBUG
+
+  client:
+    build:
+      context: .
+      dockerfile: ./client/Dockerfile
+    environment:
+      - SERVER_HOST=server
+      - SERVER_PORT=3000
+      - LOG_LEVEL=DEBUG
+    ports:
+      - "3001:3001"
