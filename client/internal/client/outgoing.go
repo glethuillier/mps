@@ -40,9 +40,9 @@ func (s *Sender) SendPreflightMessage(id string, request common.UploadRequest) {
 	}
 
 	data, err := proto.Marshal(&messages.WrapperMessage{
-		RequestId: id,
-		Type:      messages.MessageType_TRANSFER_PREFLIGHT,
-		Payload:   init,
+		RootHash: id,
+		Type:     messages.MessageType_TRANSFER_PREFLIGHT,
+		Payload:  init,
 	})
 	if err != nil {
 		logger.Logger.Error(
@@ -57,7 +57,7 @@ func (s *Sender) SendPreflightMessage(id string, request common.UploadRequest) {
 // SendDownloadRequest Protobuf serializes requests to download files
 func (s *Sender) SendDownloadRequest(id string, request common.DownloadRequest) {
 	req, err := proto.Marshal(&messages.DownloadRequest{
-		ReceiptId: request.ReceiptId,
+		RootHash: request.ReceiptId,
 		Filename:  request.Filename,
 	})
 	if err != nil {
@@ -68,7 +68,7 @@ func (s *Sender) SendDownloadRequest(id string, request common.DownloadRequest) 
 	}
 
 	data, err := proto.Marshal(&messages.WrapperMessage{
-		RequestId: id,
+		RootHash: id,
 		Type:      messages.MessageType_DOWNLOAD_REQUEST,
 		Payload:   req,
 	})
@@ -96,7 +96,7 @@ func (s *Sender) SendFile(id string, request common.File) {
 	}
 
 	data, err := proto.Marshal(&messages.WrapperMessage{
-		RequestId: id,
+		RootHash: id,
 		Type:      messages.MessageType_TRANSFER_FILE,
 		Payload:   init,
 	})

@@ -41,7 +41,7 @@ func processIncomingMessage(msg []byte) (interface{}, error) {
 			return fmt.Errorf(serverErr), nil
 		}
 
-		return ack.GetReceipt(), nil
+		return ack.GetReceiptId(), nil
 
 	// receive file
 	case messages.MessageType_TRANSFER_FILE:

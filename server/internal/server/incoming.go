@@ -35,7 +35,7 @@ func processIncomingMessage(
 		)
 
 		requestsC <- common.TransferRequest{
-			RequestId: wrapperMsg.RequestId,
+			RootHash:  wrapperMsg.RootHash,
 			Filenames: preflight.Filenames,
 		}
 
@@ -53,9 +53,9 @@ func processIncomingMessage(
 		)
 
 		requestsC <- &common.File{
-			RequestId: wrapperMsg.RequestId,
-			Filename:  receivedFile.Filename,
-			Contents:  receivedFile.Contents,
+			RootHash: wrapperMsg.RootHash,
+			Filename: receivedFile.Filename,
+			Contents: receivedFile.Contents,
 		}
 
 	// send file
@@ -69,12 +69,12 @@ func processIncomingMessage(
 		logger.Logger.Debug(
 			"received download request",
 			zap.String("filename", request.Filename),
-			zap.String("root_hash", request.ReceiptId),
+			zap.String("root_hash", request.RootHash),
 		)
 
 		requestsC <- common.DownloadRequest{
-			ReceiptId: request.ReceiptId,
-			Filename:  request.Filename,
+			RootHash: request.RootHash,
+			Filename: request.Filename,
 		}
 
 	default:

@@ -40,17 +40,17 @@ func Run(ctx context.Context, requestsC, responsesC chan interface{}) error {
 			switch r := request.(type) {
 
 			case common.TransferRequest:
-				receiver.prepareToReceiveFiles(r.RequestId, r.Filenames)
+				receiver.prepareToReceiveFiles(r.RootHash, r.Filenames)
 
 			case *common.File:
 				filesC <- r
 
 			case common.DownloadRequest:
-				rootHash, err := db.GetRootHash(r.ReceiptId)
+				rootHash, err := db.GetRootHash(r.RootHash)
 				if err != nil {
 					logger.Logger.Error(
 						"root hash cannot be retrieved from the database",
-						zap.String("receipt_id", r.ReceiptId),
+						zap.String("receipt_id", r.RootHash),
 						zap.Error(err),
 					)
 

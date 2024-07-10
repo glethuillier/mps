@@ -4,21 +4,21 @@ import "github.com/glethuillier/fvs/lib/pkg/proofs"
 
 // messages from and to the client
 type File struct {
-	RequestId string
-	Filename  string
-	Contents  []byte
-	Proof     []proofs.ProofPart
-	Error     error
+	RootHash string
+	Filename string
+	Contents []byte
+	Proof    []proofs.ProofPart
+	Error    error
 }
 
 type TransferRequest struct {
-	RequestId string
+	RootHash  string
 	Filenames []string
 }
 
 type DownloadRequest struct {
-	ReceiptId string
-	Filename  string
+	RootHash string
+	Filename string
 }
 
 type TransferAck struct {

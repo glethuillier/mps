@@ -10,9 +10,11 @@ enum MessageType {
 
 // requests from client to server
 message WrapperMessage {
-  MessageType type = 1;
-  string requestId = 2;
-  bytes payload = 3;
+  string messageId = 1;
+
+  MessageType type = 2;
+  string rootHash = 3;
+  bytes payload = 4;
 }
 
 enum HashAlgorithm {
@@ -21,30 +23,27 @@ enum HashAlgorithm {
 }
 
 message TransferPreflight {
-  HashAlgorithm hashAlgorithm = 1;
-  repeated string filenames = 2;
+  string messageId = 1;
+
+  HashAlgorithm hashAlgorithm = 2;
+  repeated string filenames = 3;
 }
 
 message DownloadRequest {
-  string receiptId = 1;
+  string rootHash = 1;
   string filename = 2;
 }
 
 // responses from server to client
 
-message MissingFiles {
-  repeated string filename = 1;
-}
-
 message TransferAck {
+  string messageId = 1;
+  
   oneof string_or_array {
     // ok: transfer receipt corresponding to the root hash
-    string receipt = 1;
+    string receiptId = 2;
 
-    string error = 2;
-
-    // error: at least one file is missing
-    MissingFiles missingFiles = 3;
+    string error = 3;
   }
 }
 
@@ -64,11 +63,13 @@ message ProofPart {
 // two-way messages
 
 message TransferFile {
-  string filename = 1;
-  bytes contents = 2;
+  string messageId = 1;
+
+  string filename = 2;
+  bytes contents = 3;
 
   // a proof is composed of multiple parts
-  repeated ProofPart proof = 3;
+  repeated ProofPart proof = 4;
 
-  optional string error = 4;
+  optional string error = 5;
 }

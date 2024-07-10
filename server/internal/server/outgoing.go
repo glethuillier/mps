@@ -20,8 +20,8 @@ func prepareOutgoingMessage(response interface{}) ([]byte, error) {
 	case common.TransferAck:
 		if r.Error == nil {
 			ack, err = proto.Marshal(&messages.TransferAck{
-				StringOrArray: &messages.TransferAck_Receipt{
-					Receipt: r.ReceiptId,
+				StringOrArray: &messages.TransferAck_ReceiptId{
+					ReceiptId: r.ReceiptId,
 				},
 			})
 			if err != nil {

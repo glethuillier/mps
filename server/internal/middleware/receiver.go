@@ -45,20 +45,20 @@ func (r *receiver) receiveFiles(
 		select {
 		case file := <-filesC:
 			r.Lock()
-			_, ok := filesToProcess[file.RequestId]
+			_, ok := filesToProcess[file.RootHash]
 			if !ok {
-				filesToProcess[file.RequestId] = []*common.File{}
+				filesToProcess[file.RootHash] = []*common.File{}
 			}
 
-			filesToProcess[file.RequestId] = append(filesToProcess[file.RequestId], file)
+			filesToProcess[file.RootHash] = append(filesToProcess[file.RootHash], file)
 			r.Unlock()
 
 			r.RLock()
-			if len(filesToProcess[file.RequestId]) == len(r.expectedFiles[file.RequestId]) {
-				r.processFiles(file.RequestId, filesToProcess[file.RequestId], responsesC)
+			if len(filesToProcess[file.RootHash]) == len(r.expectedFiles[file.RootHash]) {
+				r.processFiles(file.RootHash, filesToProcess[file.RootHash], responsesC)
 
 				// discard files in memory
-				filesToProcess[file.RequestId] = nil
+				filesToProcess[file.RootHash] = nil
 			}
 			r.RUnlock()
 		}
@@ -109,7 +109,7 @@ func (r *receiver) processFiles(
 	switch responseType {
 	case ROOTS_MATCH:
 		for _, f := range files {
-			helpers.SaveFile(f.RequestId, f.Filename, f.Contents)
+			helpers.SaveFile(f.RootHash, f.Filename, f.Contents)
 		}
 
 		receiptId := uuid.New()
