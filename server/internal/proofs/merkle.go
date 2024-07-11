@@ -36,24 +36,10 @@ func BuildMerkleTree(files []*common.File) (*common.Tree, error) {
 		return leaves[i] < leaves[j]
 	})
 
-	// n = 3; a = 4
-	//
-	//  a := power of 2 < n
-	//  b := power of 2 > n
-	//
-	// 32 > 17 > 16
-	//
-	// (n / 2) - 1
-	//
-	// a : 16
-	// b : 32
-	//
-	// b - (a + 1)
-
 	// ensure that the number of leaves is a power of 2
 	for {
 		log2 := math.Log2(float64(len(leaves)))
-		if log2 == float64(int(log2)) {
+		if len(leaves) > 1 && log2 == float64(int(log2)) {
 			break
 		}
 

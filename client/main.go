@@ -27,6 +27,8 @@ func main() {
 		cancel()
 	}()
 
+	// TODO: refactor the prototype to support concurrent clients
+
 	// caller -> client
 	requestsC := make(chan interface{})
 	responsesC := make(chan interface{})

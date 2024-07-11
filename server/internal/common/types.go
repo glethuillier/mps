@@ -1,33 +1,41 @@
 package common
 
-import "github.com/glethuillier/fvs/lib/pkg/proofs"
+import (
+	"github.com/glethuillier/fvs/lib/pkg/proofs"
+	"github.com/google/uuid"
+)
 
 // messages from and to the client
 type File struct {
-	RootHash string
-	Filename string
-	Contents []byte
-	Proof    []proofs.ProofPart
-	Error    error
+	MessageId uuid.UUID
+	RootHash  string
+	Filename  string
+	Contents  []byte
+	Proof     []proofs.ProofPart
+	Error     error
 }
 
 type TransferRequest struct {
+	MessageId uuid.UUID
 	RootHash  string
 	Filenames []string
 }
 
 type DownloadRequest struct {
-	RootHash string
-	Filename string
+	MessageId uuid.UUID
+	RootHash  string
+	Filename  string
 }
 
 type TransferAck struct {
+	MessageId uuid.UUID
 	ReceiptId string
 	Error     error
 }
 
 type ErrorResponse struct {
-	Error error
+	MessageId uuid.UUID
+	Error     error
 }
 
 // Merkle Tree

@@ -11,6 +11,7 @@ import (
 	"github.com/glethuillier/mps/client/internal/database"
 	"github.com/glethuillier/mps/client/internal/logger"
 	"github.com/glethuillier/mps/client/internal/proofs"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -55,6 +56,7 @@ func Run(
 
 	// NOTE: should be configurable
 	hash := sha512.New()
+	requestId := uuid.New()
 
 	for {
 		select {
@@ -71,12 +73,12 @@ func Run(
 						zap.Error(err))
 				}
 
-				id := tree.Root.GetHashAsString()
+				rootHash := tree.Root.GetHashAsString()
 
-				sender.SendPreflightMessage(id, req)
+				sender.SendPreflightMessage(requestId, rootHash, req)
 
 				for _, f := range req.Files {
-					go sender.SendFile(id, f)
+					go sender.SendFile(requestId, rootHash, f)
 				}
 
 				// get the confirmation from the server
@@ -98,7 +100,7 @@ func Run(
 
 			// download files
 			case common.DownloadRequest:
-				sender.SendDownloadRequest(req.ReceiptId, req)
+				sender.SendDownloadRequest(requestId, req.ReceiptId, req)
 
 				// get the file from the server
 				receivedFile, err := WaitForConfirmation(ctx, receivedMessagesC)

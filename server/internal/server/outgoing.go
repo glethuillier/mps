@@ -39,8 +39,9 @@ func prepareOutgoingMessage(response interface{}) ([]byte, error) {
 		}
 
 		data, err := proto.Marshal(&messages.WrapperMessage{
-			Type:    messages.MessageType_TRANSFER_ACK,
-			Payload: ack,
+			MessageId: r.MessageId.String(),
+			Type:      messages.MessageType_TRANSFER_ACK,
+			Payload:   ack,
 		})
 		if err != nil {
 			logger.Logger.Error(
@@ -63,8 +64,9 @@ func prepareOutgoingMessage(response interface{}) ([]byte, error) {
 		}
 
 		data, err := proto.Marshal(&messages.WrapperMessage{
-			Type:    messages.MessageType_TRANSFER_FILE,
-			Payload: response,
+			MessageId: r.MessageId.String(),
+			Type:      messages.MessageType_TRANSFER_FILE,
+			Payload:   response,
 		})
 		if err != nil {
 			logger.Logger.Error(

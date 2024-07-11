@@ -51,7 +51,7 @@ func BuildMerkleTree(hashAlgorithm hash.Hash, files []common.File) (*Tree, error
 	// needed to reach a power of 2 with empty data
 	for {
 		l := len(nodes)
-		if (l & (l - 1)) == 0 {
+		if l > 1 && (l&(l-1)) == 0 {
 			break
 		}
 

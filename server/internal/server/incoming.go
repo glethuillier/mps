@@ -4,6 +4,7 @@ import (
 	"github.com/glethuillier/fvs/lib/pkg/messages"
 	"github.com/glethuillier/fvs/server/internal/common"
 	"github.com/glethuillier/fvs/server/internal/logger"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/proto"
 )
@@ -16,6 +17,11 @@ func processIncomingMessage(
 ) error {
 	var wrapperMsg messages.WrapperMessage
 	err := proto.Unmarshal(msg, &wrapperMsg)
+	if err != nil {
+		return err
+	}
+
+	requestId, err := uuid.Parse(wrapperMsg.MessageId)
 	if err != nil {
 		return err
 	}
@@ -35,6 +41,7 @@ func processIncomingMessage(
 		)
 
 		requestsC <- common.TransferRequest{
+			MessageId: requestId,
 			RootHash:  wrapperMsg.RootHash,
 			Filenames: preflight.Filenames,
 		}
@@ -53,9 +60,10 @@ func processIncomingMessage(
 		)
 
 		requestsC <- &common.File{
-			RootHash: wrapperMsg.RootHash,
-			Filename: receivedFile.Filename,
-			Contents: receivedFile.Contents,
+			MessageId: requestId,
+			RootHash:  wrapperMsg.RootHash,
+			Filename:  receivedFile.Filename,
+			Contents:  receivedFile.Contents,
 		}
 
 	// send file
@@ -73,8 +81,9 @@ func processIncomingMessage(
 		)
 
 		requestsC <- common.DownloadRequest{
-			RootHash: request.RootHash,
-			Filename: request.Filename,
+			MessageId: requestId,
+			RootHash:  request.RootHash,
+			Filename:  request.Filename,
 		}
 
 	default:

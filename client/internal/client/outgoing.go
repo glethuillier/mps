@@ -3,6 +3,7 @@ package client
 import (
 	"github.com/glethuillier/mps/client/internal/common"
 	"github.com/glethuillier/mps/client/internal/logger"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 
 	"github.com/glethuillier/mps/lib/pkg/messages"
@@ -22,7 +23,7 @@ func GetSender(messagesC chan interface{}) *Sender {
 }
 
 // SendPreflightMessage Protobuf serializes preflight messages
-func (s *Sender) SendPreflightMessage(id string, request common.UploadRequest) {
+func (s *Sender) SendPreflightMessage(id uuid.UUID, rootHash string, request common.UploadRequest) {
 	var filenames []string
 	for _, f := range request.Files {
 		filenames = append(filenames, f.Filename)
@@ -40,9 +41,10 @@ func (s *Sender) SendPreflightMessage(id string, request common.UploadRequest) {
 	}
 
 	data, err := proto.Marshal(&messages.WrapperMessage{
-		RootHash: id,
-		Type:     messages.MessageType_TRANSFER_PREFLIGHT,
-		Payload:  init,
+		MessageId: id.String(),
+		RootHash:  rootHash,
+		Type:      messages.MessageType_TRANSFER_PREFLIGHT,
+		Payload:   init,
 	})
 	if err != nil {
 		logger.Logger.Error(
@@ -55,10 +57,10 @@ func (s *Sender) SendPreflightMessage(id string, request common.UploadRequest) {
 }
 
 // SendDownloadRequest Protobuf serializes requests to download files
-func (s *Sender) SendDownloadRequest(id string, request common.DownloadRequest) {
+func (s *Sender) SendDownloadRequest(id uuid.UUID, rootHash string, request common.DownloadRequest) {
 	req, err := proto.Marshal(&messages.DownloadRequest{
 		RootHash: request.ReceiptId,
-		Filename:  request.Filename,
+		Filename: request.Filename,
 	})
 	if err != nil {
 		logger.Logger.Error(
@@ -68,7 +70,8 @@ func (s *Sender) SendDownloadRequest(id string, request common.DownloadRequest) 
 	}
 
 	data, err := proto.Marshal(&messages.WrapperMessage{
-		RootHash: id,
+		MessageId: id.String(),
+		RootHash:  rootHash,
 		Type:      messages.MessageType_DOWNLOAD_REQUEST,
 		Payload:   req,
 	})
@@ -83,7 +86,7 @@ func (s *Sender) SendDownloadRequest(id string, request common.DownloadRequest) 
 }
 
 // SendFile Protobuf serializes files to be sent to the server
-func (s *Sender) SendFile(id string, request common.File) {
+func (s *Sender) SendFile(id uuid.UUID, rootHash string, request common.File) {
 	init, err := proto.Marshal(&messages.TransferFile{
 		Filename: request.Filename,
 		Contents: request.Contents,
@@ -96,7 +99,8 @@ func (s *Sender) SendFile(id string, request common.File) {
 	}
 
 	data, err := proto.Marshal(&messages.WrapperMessage{
-		RootHash: id,
+		MessageId: id.String(),
+		RootHash:  rootHash,
 		Type:      messages.MessageType_TRANSFER_FILE,
 		Payload:   init,
 	})

@@ -23,10 +23,8 @@ enum HashAlgorithm {
 }
 
 message TransferPreflight {
-  string messageId = 1;
-
-  HashAlgorithm hashAlgorithm = 2;
-  repeated string filenames = 3;
+  HashAlgorithm hashAlgorithm = 1;
+  repeated string filenames = 2;
 }
 
 message DownloadRequest {
@@ -37,13 +35,11 @@ message DownloadRequest {
 // responses from server to client
 
 message TransferAck {
-  string messageId = 1;
-  
   oneof string_or_array {
     // ok: transfer receipt corresponding to the root hash
-    string receiptId = 2;
+    string receiptId = 1;
 
-    string error = 3;
+    string error = 2;
   }
 }
 
@@ -63,13 +59,11 @@ message ProofPart {
 // two-way messages
 
 message TransferFile {
-  string messageId = 1;
-
-  string filename = 2;
-  bytes contents = 3;
+  string filename = 1;
+  bytes contents = 2;
 
   // a proof is composed of multiple parts
-  repeated ProofPart proof = 4;
+  repeated ProofPart proof = 3;
 
-  optional string error = 5;
+  optional string error = 4;
 }
