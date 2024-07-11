@@ -1,12 +1,14 @@
 package server
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"os"
 
 	"github.com/glethuillier/fvs/server/internal/common"
 	"github.com/glethuillier/fvs/server/internal/logger"
+	"github.com/glethuillier/fvs/server/internal/middleware"
 	"github.com/gorilla/websocket"
 	"go.uber.org/zap"
 )
@@ -22,7 +24,7 @@ type Client struct {
 }
 
 // HandleConnections handles the connections between the server and the client
-func HandleConnections(requestsC, responsesC chan interface{}) http.HandlerFunc {
+func HandleConnections(ctx context.Context, service *middleware.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		conn, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
@@ -34,6 +36,11 @@ func HandleConnections(requestsC, responsesC chan interface{}) http.HandlerFunc 
 		defer conn.Close()
 
 		client := &Client{conn: conn, send: make(chan []byte)}
+
+		requestsC := make(chan interface{})
+		responsesC := make(chan interface{})
+
+		service.Run(ctx, requestsC, responsesC)
 
 		go client.handleReads(requestsC)
 		client.handleWrites(responsesC)
@@ -63,38 +70,36 @@ func (c *Client) handleReads(requestsC chan interface{}) {
 
 func (c *Client) handleWrites(responsesC chan interface{}) {
 	for {
-		select {
-		case response := <-responsesC:
-			msg, err := prepareOutgoingMessage(response)
-			if err != nil {
-				logger.Logger.Error(
-					"cannot prepare the message to send",
-					zap.Error(err),
-				)
-				responsesC <- &common.TransferAck{
-					Error: err,
-				}
-			}
-
-			err = c.conn.WriteMessage(
-				websocket.BinaryMessage,
-				msg,
+		response := <-responsesC
+		msg, err := prepareOutgoingMessage(response)
+		if err != nil {
+			logger.Logger.Error(
+				"cannot prepare the message to send",
+				zap.Error(err),
 			)
-			if err != nil {
-				logger.Logger.Error(
-					"cannot prepare the message to send",
-					zap.Error(err),
-				)
-				responsesC <- &common.TransferAck{
-					Error: err,
-				}
+			responsesC <- &common.TransferAck{
+				Error: err,
+			}
+		}
+
+		err = c.conn.WriteMessage(
+			websocket.BinaryMessage,
+			msg,
+		)
+		if err != nil {
+			logger.Logger.Error(
+				"cannot prepare the message to send",
+				zap.Error(err),
+			)
+			responsesC <- &common.TransferAck{
+				Error: err,
 			}
 		}
 	}
 }
 
-func Run(requestsC, responsesC chan interface{}) {
-	http.HandleFunc("/", HandleConnections(requestsC, responsesC))
+func Run(ctx context.Context, service *middleware.Service) {
+	http.HandleFunc("/", HandleConnections(ctx, service))
 
 	port := os.Getenv("PORT")
 	if len(port) == 0 {

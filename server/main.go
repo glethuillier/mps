@@ -19,24 +19,26 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	done := make(chan struct{})
+
 	signalC := make(chan os.Signal, 1)
 	signal.Notify(signalC, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
 		<-signalC
 		logger.Logger.Info("closing the server...")
 		cancel()
+		done <- struct{}{}
 	}()
 
-	// server <-> client
-	requestsC := make(chan interface{}, 100)
-	responsesC := make(chan interface{}, 100)
-	go server.Run(requestsC, responsesC)
-
-	err := middleware.Run(ctx, requestsC, responsesC)
+	service, err := middleware.GetService()
 	if err != nil {
 		logger.Logger.Fatal(
 			"middleware cannot be launched",
 			zap.Error(err),
 		)
 	}
+
+	go server.Run(ctx, service)
+
+	<-done
 }
