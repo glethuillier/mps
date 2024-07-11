@@ -1,14 +1,16 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
 
 	"github.com/glethuillier/mps/client/internal/common"
 	"github.com/glethuillier/mps/client/internal/logger"
+	"github.com/glethuillier/mps/client/internal/middleware"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -23,7 +25,10 @@ type downloadRequest struct {
 }
 
 // uploadFilesHandler handles requests to upload a batch of files
-func uploadFilesHandler(requestsC, responsesC chan interface{}) http.HandlerFunc {
+func uploadFilesHandler(
+	ctx context.Context,
+	service *middleware.Service,
+) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		err := r.ParseMultipartForm(32 << 20) // limit to 32Mb
 		if err != nil {
@@ -60,31 +65,29 @@ func uploadFilesHandler(requestsC, responsesC chan interface{}) http.HandlerFunc
 			})
 		}
 
-		requestsC <- common.UploadRequest{
-			Files: uploadedFiles,
-		}
+		requestID := uuid.New()
+		receiptId, err := service.ProcessUploadRequest(
+			ctx,
+			requestID,
+			common.UploadRequest{
+				Files: uploadedFiles,
+			})
 
-		response := <-responsesC
-
-		switch resp := response.(type) {
-		// receipt
-		case string:
-			w.WriteHeader(http.StatusOK)
-			err := json.NewEncoder(w).Encode(serverResponse{ReceiptId: resp})
-			if err != nil {
-				logger.Logger.Error(
-					"cannot send response",
-					zap.Error(err),
-				)
-			}
-
-		// error
-		case error:
+		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			err = json.NewEncoder(w).Encode(serverResponse{Error: resp.Error()})
+			err = json.NewEncoder(w).Encode(serverResponse{Error: err.Error()})
 			if err != nil {
 				logger.Logger.Error(
 					"cannot send error",
+					zap.Error(err),
+				)
+			}
+		} else {
+			w.WriteHeader(http.StatusOK)
+			err := json.NewEncoder(w).Encode(serverResponse{ReceiptId: receiptId})
+			if err != nil {
+				logger.Logger.Error(
+					"cannot send response",
 					zap.Error(err),
 				)
 			}
@@ -93,9 +96,7 @@ func uploadFilesHandler(requestsC, responsesC chan interface{}) http.HandlerFunc
 }
 
 // downloadFilesHandler handles requests to download a given file
-func downloadFilesHandler(
-	requestsC, responsesC chan interface{},
-) http.HandlerFunc {
+func downloadFilesHandler(ctx context.Context, service *middleware.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
@@ -108,66 +109,49 @@ func downloadFilesHandler(
 			return
 		}
 
-		requestsC <- common.DownloadRequest{
-			ReceiptId: req.ReceiptId,
-			Filename:  req.Filename,
-		}
+		requestID := uuid.New()
 
-		response := <-responsesC
-
-		switch resp := response.(type) {
-
-		case *common.File:
-			if resp.Error != nil {
-				// return error
-				w.WriteHeader(http.StatusInternalServerError)
-				err := json.NewEncoder(w).Encode(serverResponse{Error: resp.Error.Error()})
-				if err != nil {
-					logger.Logger.Error(
-						"cannot send error",
-						zap.Error(err),
-					)
-				}
-			} else {
-				// return file
-				w.Header().Set("Content-Disposition", "attachment; filename="+resp.Filename)
-				w.Header().Set("Content-Type", "application/octet-stream")
-				w.Header().Set("Content-Length", fmt.Sprintf("%d", len(resp.Contents)))
-
-				// custom proof-related headers
-				for i, p := range resp.Proof {
-					w.Header().Set(
-						fmt.Sprintf("Proof-Sibling-%d-%s", i, p.SiblingType.String()),
-						p.SiblingHash,
-					)
-				}
-
-				w.Header().Set("Proof-Root-Hash", req.ReceiptId)
-
-				w.Write(resp.Contents)
-			}
-
-		case error:
-			httpStatus := http.StatusInternalServerError
-			if errors.Is(resp, common.ErrMismatchingRoots) {
-				httpStatus = 427 // Invalid digital signature
-			}
-
-			w.WriteHeader(httpStatus)
-			err := json.NewEncoder(w).Encode(serverResponse{Error: resp.Error()})
+		file, err := service.ProcessDownloadRequest(
+			ctx,
+			requestID,
+			common.DownloadRequest{
+				ReceiptId: req.ReceiptId,
+				Filename:  req.Filename,
+			},
+		)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			err := json.NewEncoder(w).Encode(serverResponse{Error: file.Error.Error()})
 			if err != nil {
 				logger.Logger.Error(
 					"cannot send error",
 					zap.Error(err),
 				)
 			}
+		} else {
+			// return file
+			w.Header().Set("Content-Disposition", "attachment; filename="+file.Filename)
+			w.Header().Set("Content-Type", "application/octet-stream")
+			w.Header().Set("Content-Length", fmt.Sprintf("%d", len(file.Contents)))
+
+			// custom proof-related headers
+			for i, p := range file.Proof {
+				w.Header().Set(
+					fmt.Sprintf("Proof-Sibling-%d-%s", i, p.SiblingType.String()),
+					p.SiblingHash,
+				)
+			}
+
+			w.Header().Set("Proof-Root-Hash", req.ReceiptId)
+
+			w.Write(file.Contents)
 		}
 	}
 }
 
-func Run(requestsC, responsesC chan interface{}) {
-	http.HandleFunc("/upload", uploadFilesHandler(requestsC, responsesC))
-	http.HandleFunc("/download", downloadFilesHandler(requestsC, responsesC))
+func Run(ctx context.Context, service *middleware.Service) {
+	http.HandleFunc("/upload", uploadFilesHandler(ctx, service))
+	http.HandleFunc("/download", downloadFilesHandler(ctx, service))
 
 	logger.Logger.Info("API server started at :3001")
 	http.ListenAndServe("0.0.0.0:3001", nil)

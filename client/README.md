@@ -1,6 +1,6 @@
 # mps | Client
 
-This *mps* (Merkle Proof Service) client uploads files to a *mps* server and, using a Merkle tree ensures that they have not been corrupted in any way.
+This *mps* (Merkle Proof Service) client uploads files to a *mps* server and, using a Merkle tree, ensures that they have not been corrupted in any way.
 
 ## Run
 

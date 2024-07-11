@@ -10,6 +10,7 @@ import (
 	"github.com/glethuillier/mps/client/internal/logger"
 	"github.com/glethuillier/mps/client/internal/middleware"
 	"github.com/glethuillier/mps/client/internal/server"
+	"go.uber.org/zap"
 )
 
 func main() {
@@ -19,31 +20,36 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	done := make(chan struct{})
+
 	signalC := make(chan os.Signal, 1)
 	signal.Notify(signalC, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
 		<-signalC
 		logger.Logger.Info("closing the client...")
 		cancel()
+		done <- struct{}{}
 	}()
 
-	// TODO: refactor the prototype to support concurrent clients
+	// TODO: improve the prototype to support concurrent clients
 
-	// caller -> client
-	requestsC := make(chan interface{})
-	responsesC := make(chan interface{})
-	go server.Run(requestsC, responsesC)
-
-	// client <-> server
 	messagesToSendC := make(chan interface{})
 	receivedMessagesC := make(chan interface{})
-	go client.Run(ctx, messagesToSendC, receivedMessagesC)
 
-	middleware.Run(
+	service, err := middleware.GetService(
 		ctx,
-		requestsC,
-		responsesC,
 		messagesToSendC,
 		receivedMessagesC,
 	)
+	if err != nil {
+		logger.Logger.Panic("cannot run the middleware", zap.Error(err))
+	}
+
+	// caller -> client
+	go server.Run(ctx, service)
+
+	// client <-> server
+	go client.Run(ctx, messagesToSendC, receivedMessagesC)
+
+	<-done
 }
