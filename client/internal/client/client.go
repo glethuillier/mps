@@ -5,19 +5,22 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/cenkalti/backoff"
 	"github.com/glethuillier/mps/client/internal/logger"
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"go.uber.org/zap"
 )
 
 type client struct {
-	conn              *websocket.Conn
-	url               url.URL
-	messagesToSendC   chan interface{}
-	receivedMessagesC chan interface{}
+	mu                 sync.RWMutex
+	conn               *websocket.Conn
+	url                url.URL
+	messagesToSendC    chan interface{}
+	messagesReceivedMC map[uuid.UUID]chan interface{}
 }
 
 // tryConnect attempts to connect to the server
@@ -130,7 +133,7 @@ func (c *client) handleReads(ctx context.Context) {
 			c.tryConnect(ctx)
 			return
 		}
-		msg, err := processIncomingMessage(message)
+		id, msg, err := processIncomingMessage(message)
 		if err != nil {
 			logger.Logger.Error(
 				"error occurred while parsing message from server",
@@ -138,11 +141,23 @@ func (c *client) handleReads(ctx context.Context) {
 			)
 		}
 
-		c.receivedMessagesC <- msg
+		c.mu.RLock()
+		_, ok := c.messagesReceivedMC[id]
+		if !ok {
+			// should never occur at this stage
+			panic("chan map entry has not been initialized")
+		}
+
+		c.messagesReceivedMC[id] <- msg
+		c.mu.RUnlock()
 	}
 }
 
-func Run(ctx context.Context, messagesToSendC, receivedMessagesC chan interface{}) {
+func Run(
+	ctx context.Context,
+	messagesToSendC chan interface{},
+	messagesReceivedMC map[uuid.UUID]chan interface{},
+) {
 	serverHost := os.Getenv("SERVER_HOST")
 	if len(serverHost) == 0 {
 		serverHost = "localhost"
@@ -163,8 +178,8 @@ func Run(ctx context.Context, messagesToSendC, receivedMessagesC chan interface{
 			Host:   serverUrl,
 			Path:   "/",
 		},
-		messagesToSendC:   messagesToSendC,
-		receivedMessagesC: receivedMessagesC,
+		messagesToSendC:    messagesToSendC,
+		messagesReceivedMC: messagesReceivedMC,
 	}
 
 	client.tryConnect(ctx)

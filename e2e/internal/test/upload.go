@@ -15,7 +15,7 @@ type uploadResponse struct {
 	ReceiptID string `json:"receiptId"`
 }
 
-// uploadFiles uploads the test files to the server and returns
+// UploadFiles uploads the test files to the server and returns
 // the receipt ID or an error
 func UploadFiles(url, testDirectory string, filenames []string) (string, error) {
 	var requestBody bytes.Buffer

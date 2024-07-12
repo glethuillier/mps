@@ -48,7 +48,8 @@ func (s *Service) Run(ctx context.Context, requestsC, responsesC chan interface{
 						)
 
 						responsesC <- common.ErrorResponse{
-							Error: err,
+							MessageId: r.MessageId,
+							Error:     err,
 						}
 
 						break
@@ -64,7 +65,8 @@ func (s *Service) Run(ctx context.Context, requestsC, responsesC chan interface{
 						)
 
 						responsesC <- common.ErrorResponse{
-							Error: fmt.Errorf("file not found"),
+							MessageId: r.MessageId,
+							Error:     fmt.Errorf("file not found"),
 						}
 
 						break
@@ -80,7 +82,8 @@ func (s *Service) Run(ctx context.Context, requestsC, responsesC chan interface{
 						)
 
 						responsesC <- common.ErrorResponse{
-							Error: err,
+							MessageId: r.MessageId,
+							Error:     err,
 						}
 
 						break
@@ -95,16 +98,18 @@ func (s *Service) Run(ctx context.Context, requestsC, responsesC chan interface{
 						)
 
 						responsesC <- common.ErrorResponse{
-							Error: err,
+							MessageId: r.MessageId,
+							Error:     err,
 						}
 
 						break
 					}
 
 					responsesC <- &common.File{
-						Filename: r.Filename,
-						Contents: fileContents,
-						Proof:    proof,
+						MessageId: r.MessageId,
+						Filename:  r.Filename,
+						Contents:  fileContents,
+						Proof:     proof,
 					}
 				}
 

@@ -21,7 +21,7 @@ func BuildMerkleTree(files []*common.File) (*common.Tree, error) {
 	hashAlgorithm := sha512.New()
 
 	// leaves
-	leaves := []string{}
+	var leaves []string
 	for _, f := range files {
 		h, err := hashLeaf(hashAlgorithm, f)
 		if err != nil {
@@ -50,7 +50,7 @@ func BuildMerkleTree(files []*common.File) (*common.Tree, error) {
 
 	// compute root hash
 	for {
-		nextLevel := []string{}
+		var nextLevel []string
 		for i := 0; i < len(level); i += 2 {
 			// NOTE: this approach is valid only because the tree
 			// will be a perfect binary tree (as a consequence, the

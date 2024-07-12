@@ -30,27 +30,26 @@ func TestGenerator(t *testing.T) {
 				{
 					Filename: "abc.txt",
 					Contents: []byte{
-						74, 39, 97, 105, 32, 116, 111, 117, 116, 32, 100, 111, 110,
 						110, 195, 169, 32, 112, 111, 117, 114, 32, 99, 101, 116, 32,
 						101, 120, 101, 114, 99, 105, 99, 101, 32, 33, 32, 58, 41,
 					},
 				},
 			},
 			tree: &common.Tree{
-				RootHash: "4dfefda1ce283a40b492f1f1e7d234f9e379ecdafaf172cf5a510ef4889bc9697bc63c2426c2456fc628e05db7277baee684a6a844cda178e7943084ea0dc29e",
+				RootHash: "040038907ccb5294981ecd6c653a7c1528844ccfb6a3c62d61f7485c9afc762d18ceefb9ebf873d8e2a3cc656796e0130a8546adced12952772deed871bef649",
 				FilenameToHash: map[string]string{
 					"abc.txt":    "48e69af2e737b5e6ebd3c129838b8b582bd7bdbdb6ec1c6e99ed311031b3735a819ca2ef5c68bf054891f9ab1928bcae851e943b03d2cd0842ce40b4bc9ceb84",
 					"readme.txt": "70a49087db423f89aeea154a0f961f4aef0e634b286e3fdf35b430403421f031daf301ec0da455e226bcba40720f2147cbb7fa638917ee67a8fc40b143fa5c02",
 				},
 				Nodes: map[string]common.Node{
-					"4dfefda1ce283a40b492f1f1e7d234f9e379ecdafaf172cf5a510ef4889bc9697bc63c2426c2456fc628e05db7277baee684a6a844cda178e7943084ea0dc29e": {SiblingType: proofs.NoSibling},
+					"040038907ccb5294981ecd6c653a7c1528844ccfb6a3c62d61f7485c9afc762d18ceefb9ebf873d8e2a3cc656796e0130a8546adced12952772deed871bef649": {SiblingType: proofs.NoSibling},
 					"48e69af2e737b5e6ebd3c129838b8b582bd7bdbdb6ec1c6e99ed311031b3735a819ca2ef5c68bf054891f9ab1928bcae851e943b03d2cd0842ce40b4bc9ceb84": {
-						Parent:      "4dfefda1ce283a40b492f1f1e7d234f9e379ecdafaf172cf5a510ef4889bc9697bc63c2426c2456fc628e05db7277baee684a6a844cda178e7943084ea0dc29e",
+						Parent:      "040038907ccb5294981ecd6c653a7c1528844ccfb6a3c62d61f7485c9afc762d18ceefb9ebf873d8e2a3cc656796e0130a8546adced12952772deed871bef649",
 						Sibling:     "70a49087db423f89aeea154a0f961f4aef0e634b286e3fdf35b430403421f031daf301ec0da455e226bcba40720f2147cbb7fa638917ee67a8fc40b143fa5c02",
 						SiblingType: proofs.RightSibling,
 					},
 					"70a49087db423f89aeea154a0f961f4aef0e634b286e3fdf35b430403421f031daf301ec0da455e226bcba40720f2147cbb7fa638917ee67a8fc40b143fa5c02": {
-						Parent:      "4dfefda1ce283a40b492f1f1e7d234f9e379ecdafaf172cf5a510ef4889bc9697bc63c2426c2456fc628e05db7277baee684a6a844cda178e7943084ea0dc29e",
+						Parent:      "040038907ccb5294981ecd6c653a7c1528844ccfb6a3c62d61f7485c9afc762d18ceefb9ebf873d8e2a3cc656796e0130a8546adced12952772deed871bef649",
 						Sibling:     "48e69af2e737b5e6ebd3c129838b8b582bd7bdbdb6ec1c6e99ed311031b3735a819ca2ef5c68bf054891f9ab1928bcae851e943b03d2cd0842ce40b4bc9ceb84",
 						SiblingType: proofs.LeftSibling,
 					},
@@ -84,7 +83,6 @@ func TestGenerator(t *testing.T) {
 				{
 					Filename: "abc.txt",
 					Contents: []byte{
-						74, 39, 97, 105, 32, 116, 111, 117, 116, 32, 100, 111, 110,
 						110, 195, 169, 32, 112, 111, 117, 114, 32, 99, 101, 116, 32,
 						101, 120, 101, 114, 99, 105, 99, 101, 32, 33, 32, 58, 41,
 					},
@@ -106,23 +104,23 @@ func TestGenerator(t *testing.T) {
 				Nodes: map[string]common.Node{
 					"2c6d246cb5fc78916395cd786aa0264c5211e65bfe03724dc6a264b3e53b0960107b2b9629f7a17ab467313a20a5cc513558444c8a9013a879d567c273c5c748": {SiblingType: proofs.NoSibling},
 					"48e69af2e737b5e6ebd3c129838b8b582bd7bdbdb6ec1c6e99ed311031b3735a819ca2ef5c68bf054891f9ab1928bcae851e943b03d2cd0842ce40b4bc9ceb84": {
-						Parent:      "4dfefda1ce283a40b492f1f1e7d234f9e379ecdafaf172cf5a510ef4889bc9697bc63c2426c2456fc628e05db7277baee684a6a844cda178e7943084ea0dc29e",
+						Parent:      "040038907ccb5294981ecd6c653a7c1528844ccfb6a3c62d61f7485c9afc762d18ceefb9ebf873d8e2a3cc656796e0130a8546adced12952772deed871bef649",
 						Sibling:     "70a49087db423f89aeea154a0f961f4aef0e634b286e3fdf35b430403421f031daf301ec0da455e226bcba40720f2147cbb7fa638917ee67a8fc40b143fa5c02",
 						SiblingType: proofs.RightSibling,
 					},
 					"70a49087db423f89aeea154a0f961f4aef0e634b286e3fdf35b430403421f031daf301ec0da455e226bcba40720f2147cbb7fa638917ee67a8fc40b143fa5c02": {
-						Parent:      "4dfefda1ce283a40b492f1f1e7d234f9e379ecdafaf172cf5a510ef4889bc9697bc63c2426c2456fc628e05db7277baee684a6a844cda178e7943084ea0dc29e",
+						Parent:      "040038907ccb5294981ecd6c653a7c1528844ccfb6a3c62d61f7485c9afc762d18ceefb9ebf873d8e2a3cc656796e0130a8546adced12952772deed871bef649",
 						Sibling:     "48e69af2e737b5e6ebd3c129838b8b582bd7bdbdb6ec1c6e99ed311031b3735a819ca2ef5c68bf054891f9ab1928bcae851e943b03d2cd0842ce40b4bc9ceb84",
 						SiblingType: proofs.LeftSibling,
 					},
-					"4dfefda1ce283a40b492f1f1e7d234f9e379ecdafaf172cf5a510ef4889bc9697bc63c2426c2456fc628e05db7277baee684a6a844cda178e7943084ea0dc29e": {
+					"040038907ccb5294981ecd6c653a7c1528844ccfb6a3c62d61f7485c9afc762d18ceefb9ebf873d8e2a3cc656796e0130a8546adced12952772deed871bef649": {
 						Parent:      "2c6d246cb5fc78916395cd786aa0264c5211e65bfe03724dc6a264b3e53b0960107b2b9629f7a17ab467313a20a5cc513558444c8a9013a879d567c273c5c748",
 						Sibling:     "64b7683abaa13b47aa21928b7a43dc6e7459701d49f111fffb1ee0abca339db32cdee40746b2834b52063e90587f5f645c0b4a58247d1bcefbaa52ab95af3532",
 						SiblingType: proofs.RightSibling,
 					},
 					"64b7683abaa13b47aa21928b7a43dc6e7459701d49f111fffb1ee0abca339db32cdee40746b2834b52063e90587f5f645c0b4a58247d1bcefbaa52ab95af3532": {
 						Parent:      "2c6d246cb5fc78916395cd786aa0264c5211e65bfe03724dc6a264b3e53b0960107b2b9629f7a17ab467313a20a5cc513558444c8a9013a879d567c273c5c748",
-						Sibling:     "4dfefda1ce283a40b492f1f1e7d234f9e379ecdafaf172cf5a510ef4889bc9697bc63c2426c2456fc628e05db7277baee684a6a844cda178e7943084ea0dc29e",
+						Sibling:     "040038907ccb5294981ecd6c653a7c1528844ccfb6a3c62d61f7485c9afc762d18ceefb9ebf873d8e2a3cc656796e0130a8546adced12952772deed871bef649",
 						SiblingType: proofs.LeftSibling,
 					},
 					"c99f95c6d2b8ed5a065946e0e6a4f76a2e7bbd5fe4d8ca922b7f1537dbf14db24145403f736a689d15a5c5e72d2742bee85420e54f7813439125273f112d133a": {
@@ -164,7 +162,7 @@ func TestGenerator(t *testing.T) {
 						SiblingType: proofs.RightSibling,
 					},
 					{
-						SiblingHash: "4dfefda1ce283a40b492f1f1e7d234f9e379ecdafaf172cf5a510ef4889bc9697bc63c2426c2456fc628e05db7277baee684a6a844cda178e7943084ea0dc29e",
+						SiblingHash: "040038907ccb5294981ecd6c653a7c1528844ccfb6a3c62d61f7485c9afc762d18ceefb9ebf873d8e2a3cc656796e0130a8546adced12952772deed871bef649",
 						SiblingType: proofs.LeftSibling,
 					},
 				},
@@ -183,7 +181,6 @@ func TestGenerator(t *testing.T) {
 				{
 					Filename: "abc.txt",
 					Contents: []byte{
-						74, 39, 97, 105, 32, 116, 111, 117, 116, 32, 100, 111, 110,
 						110, 195, 169, 32, 112, 111, 117, 114, 32, 99, 101, 116, 32,
 						101, 120, 101, 114, 99, 105, 99, 101, 32, 33, 32, 58, 41,
 					},
@@ -205,23 +202,23 @@ func TestGenerator(t *testing.T) {
 				Nodes: map[string]common.Node{
 					"2c6d246cb5fc78916395cd786aa0264c5211e65bfe03724dc6a264b3e53b0960107b2b9629f7a17ab467313a20a5cc513558444c8a9013a879d567c273c5c748": {SiblingType: proofs.NoSibling},
 					"48e69af2e737b5e6ebd3c129838b8b582bd7bdbdb6ec1c6e99ed311031b3735a819ca2ef5c68bf054891f9ab1928bcae851e943b03d2cd0842ce40b4bc9ceb84": {
-						Parent:      "4dfefda1ce283a40b492f1f1e7d234f9e379ecdafaf172cf5a510ef4889bc9697bc63c2426c2456fc628e05db7277baee684a6a844cda178e7943084ea0dc29e",
+						Parent:      "040038907ccb5294981ecd6c653a7c1528844ccfb6a3c62d61f7485c9afc762d18ceefb9ebf873d8e2a3cc656796e0130a8546adced12952772deed871bef649",
 						Sibling:     "70a49087db423f89aeea154a0f961f4aef0e634b286e3fdf35b430403421f031daf301ec0da455e226bcba40720f2147cbb7fa638917ee67a8fc40b143fa5c02",
 						SiblingType: proofs.RightSibling,
 					},
 					"70a49087db423f89aeea154a0f961f4aef0e634b286e3fdf35b430403421f031daf301ec0da455e226bcba40720f2147cbb7fa638917ee67a8fc40b143fa5c02": {
-						Parent:      "4dfefda1ce283a40b492f1f1e7d234f9e379ecdafaf172cf5a510ef4889bc9697bc63c2426c2456fc628e05db7277baee684a6a844cda178e7943084ea0dc29e",
+						Parent:      "040038907ccb5294981ecd6c653a7c1528844ccfb6a3c62d61f7485c9afc762d18ceefb9ebf873d8e2a3cc656796e0130a8546adced12952772deed871bef649",
 						Sibling:     "48e69af2e737b5e6ebd3c129838b8b582bd7bdbdb6ec1c6e99ed311031b3735a819ca2ef5c68bf054891f9ab1928bcae851e943b03d2cd0842ce40b4bc9ceb84",
 						SiblingType: proofs.LeftSibling,
 					},
-					"4dfefda1ce283a40b492f1f1e7d234f9e379ecdafaf172cf5a510ef4889bc9697bc63c2426c2456fc628e05db7277baee684a6a844cda178e7943084ea0dc29e": {
+					"040038907ccb5294981ecd6c653a7c1528844ccfb6a3c62d61f7485c9afc762d18ceefb9ebf873d8e2a3cc656796e0130a8546adced12952772deed871bef649": {
 						Parent:      "2c6d246cb5fc78916395cd786aa0264c5211e65bfe03724dc6a264b3e53b0960107b2b9629f7a17ab467313a20a5cc513558444c8a9013a879d567c273c5c748",
 						Sibling:     "64b7683abaa13b47aa21928b7a43dc6e7459701d49f111fffb1ee0abca339db32cdee40746b2834b52063e90587f5f645c0b4a58247d1bcefbaa52ab95af3532",
 						SiblingType: proofs.RightSibling,
 					},
 					"64b7683abaa13b47aa21928b7a43dc6e7459701d49f111fffb1ee0abca339db32cdee40746b2834b52063e90587f5f645c0b4a58247d1bcefbaa52ab95af3532": {
 						Parent:      "2c6d246cb5fc78916395cd786aa0264c5211e65bfe03724dc6a264b3e53b0960107b2b9629f7a17ab467313a20a5cc513558444c8a9013a879d567c273c5c748",
-						Sibling:     "4dfefda1ce283a40b492f1f1e7d234f9e379ecdafaf172cf5a510ef4889bc9697bc63c2426c2456fc628e05db7277baee684a6a844cda178e7943084ea0dc29e",
+						Sibling:     "040038907ccb5294981ecd6c653a7c1528844ccfb6a3c62d61f7485c9afc762d18ceefb9ebf873d8e2a3cc656796e0130a8546adced12952772deed871bef649",
 						SiblingType: proofs.LeftSibling,
 					},
 					"c99f95c6d2b8ed5a065946e0e6a4f76a2e7bbd5fe4d8ca922b7f1537dbf14db24145403f736a689d15a5c5e72d2742bee85420e54f7813439125273f112d133a": {
@@ -263,7 +260,7 @@ func TestGenerator(t *testing.T) {
 						SiblingType: proofs.LeftSibling, // here: right -> left (wrong sibling type)
 					},
 					{
-						SiblingHash: "4dfefda1ce283a40b492f1f1e7d234f9e379ecdafaf172cf5a510ef4889bc9697bc63c2426c2456fc628e05db7277baee684a6a844cda178e7943084ea0dc29e",
+						SiblingHash: "040038907ccb5294981ecd6c653a7c1528844ccfb6a3c62d61f7485c9afc762d18ceefb9ebf873d8e2a3cc656796e0130a8546adced12952772deed871bef649",
 						SiblingType: proofs.LeftSibling,
 					},
 				},

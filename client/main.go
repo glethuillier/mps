@@ -10,6 +10,7 @@ import (
 	"github.com/glethuillier/mps/client/internal/logger"
 	"github.com/glethuillier/mps/client/internal/middleware"
 	"github.com/glethuillier/mps/client/internal/server"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -31,16 +32,13 @@ func main() {
 		done <- struct{}{}
 	}()
 
-	// TODO: improve the prototype to support concurrent clients
-
 	messagesToSendC := make(chan interface{})
-	receivedMessagesC := make(chan interface{})
 
-	service, err := middleware.GetService(
-		ctx,
-		messagesToSendC,
-		receivedMessagesC,
-	)
+	// messages received from the mps server are
+	// dispatched by request ID (map of channels)
+	messagesReceivedMC := make(map[uuid.UUID]chan interface{})
+
+	service, err := middleware.GetService(messagesToSendC, messagesReceivedMC)
 	if err != nil {
 		logger.Logger.Panic("cannot run the middleware", zap.Error(err))
 	}
@@ -49,7 +47,7 @@ func main() {
 	go server.Run(ctx, service)
 
 	// client <-> server
-	go client.Run(ctx, messagesToSendC, receivedMessagesC)
+	go client.Run(ctx, messagesToSendC, messagesReceivedMC)
 
 	<-done
 }

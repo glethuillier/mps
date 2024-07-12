@@ -39,7 +39,6 @@ func DownloadFiles(url string, receiptId string, filenames []string) error {
 		if err != nil {
 			return fmt.Errorf("failed to perform request: %v", err)
 		}
-		defer resp.Body.Close()
 
 		if resp.StatusCode != http.StatusOK {
 			fmt.Printf("FAIL (file is corrupted)\n")
@@ -47,6 +46,7 @@ func DownloadFiles(url string, receiptId string, filenames []string) error {
 		} else {
 			fmt.Printf("OK\n")
 		}
+		resp.Body.Close()
 	}
 
 	return nil

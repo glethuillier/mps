@@ -5,6 +5,7 @@ import (
 	"crypto/sha512"
 	"fmt"
 	"hash"
+	"sync"
 	"time"
 
 	"github.com/glethuillier/mps/client/internal/client"
@@ -16,22 +17,19 @@ import (
 	"go.uber.org/zap"
 )
 
-// WaitForConfirmation monitors incoming messages from
+// receiveDataWithTimeout monitors incoming messages from
 // the server and times out if the server has not sent
 // an expected message in a given time
-//
-// TODO: refactor this function to support concurrent
-// end-users
-func WaitForConfirmation(
+func receiveDataWithTimeout(
 	ctx context.Context,
-	receivedMessagesC chan interface{},
+	messagesReceivedC chan interface{},
 ) (interface{}, error) {
-	// NOTE: timeout should be configurable
+	// TODO: timeout should be configurable
 	timer := time.After(60 * time.Second)
 
 	for {
 		select {
-		case message := <-receivedMessagesC:
+		case message := <-messagesReceivedC:
 			return message, nil
 
 		case <-timer:
@@ -45,16 +43,28 @@ func WaitForConfirmation(
 }
 
 type Service struct {
+	mu                sync.RWMutex
 	db                *database.Database
 	hashAlgorithm     hash.Hash
 	sender            *client.Sender
-	receivedMessagesC chan interface{}
+	messagesReceivedC map[uuid.UUID]chan interface{}
 }
 
-func GetService(ctx context.Context,
-	messagesToSendC,
-	receivedMessagesC chan interface{},
-) (*Service, error) {
+func (s *Service) addReceiveChan(id uuid.UUID) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.messagesReceivedC[id] = make(chan interface{})
+}
+
+func (s *Service) deleteReceiveChan(id uuid.UUID) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	delete(s.messagesReceivedC, id)
+}
+
+func GetService(messagesToSendC chan interface{}, messagesReceivedC map[uuid.UUID]chan interface{}) (*Service, error) {
 	sender := client.GetSender(messagesToSendC)
 
 	db, err := database.CreateDatabase("roots.db")
@@ -62,14 +72,14 @@ func GetService(ctx context.Context,
 		return nil, fmt.Errorf("the database cannot be created: %w", err)
 	}
 
-	// NOTE: should be configurable
-	hash := sha512.New()
+	// TODO: make it configurable
+	hashAlgorithm := sha512.New()
 
 	return &Service{
 		db:                db,
-		hashAlgorithm:     hash,
+		hashAlgorithm:     hashAlgorithm,
 		sender:            sender,
-		receivedMessagesC: receivedMessagesC,
+		messagesReceivedC: messagesReceivedC,
 	}, nil
 }
 
@@ -78,6 +88,9 @@ func (s *Service) ProcessUploadRequest(
 	requestId uuid.UUID,
 	request common.UploadRequest,
 ) (string, error) {
+	s.addReceiveChan(requestId)
+	defer s.deleteReceiveChan(requestId)
+
 	// build the Merkle tree
 	tree, err := proofs.BuildMerkleTree(s.hashAlgorithm, request.Files)
 	if err != nil {
@@ -94,7 +107,7 @@ func (s *Service) ProcessUploadRequest(
 	}
 
 	// get the confirmation from the server
-	response, err := WaitForConfirmation(ctx, s.receivedMessagesC)
+	response, err := receiveDataWithTimeout(ctx, s.messagesReceivedC[requestId])
 	if err != nil {
 		return "", err
 	}
@@ -115,17 +128,24 @@ func (s *Service) ProcessDownloadRequest(
 	requestId uuid.UUID,
 	request common.DownloadRequest,
 ) (*common.File, error) {
+	s.addReceiveChan(requestId)
+	defer s.deleteReceiveChan(requestId)
+
 	s.sender.SendDownloadRequest(requestId, request.ReceiptId, request)
 
 	// get the file from the server
-	receivedFile, err := WaitForConfirmation(ctx, s.receivedMessagesC)
+	data, err := receiveDataWithTimeout(ctx, s.messagesReceivedC[requestId])
 	if err != nil {
 		return nil, err
 	}
 
-	file, ok := receivedFile.(*common.File)
-	if !ok || file.Error != nil {
-		return nil, err
+	file, ok := data.(*common.File)
+	if !ok {
+		return nil, fmt.Errorf("data received from server is not a file: %T", file)
+	}
+
+	if file.Error != nil {
+		return nil, file.Error
 	}
 
 	// get the root hash corresponding to receipt ID

@@ -5,6 +5,7 @@ import (
 
 	"github.com/glethuillier/mps/client/internal/common"
 	"github.com/glethuillier/mps/client/internal/logger"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 
 	"github.com/glethuillier/mps/lib/pkg/messages"
@@ -13,12 +14,17 @@ import (
 )
 
 // processIncomingMessage parses individual raw messages from the server
-func processIncomingMessage(msg []byte) (interface{}, error) {
+func processIncomingMessage(msg []byte) (uuid.UUID, interface{}, error) {
 	var wrapperMsg messages.WrapperMessage
 
 	err := proto.Unmarshal(msg, &wrapperMsg)
 	if err != nil {
-		return nil, err
+		return uuid.UUID{}, nil, err
+	}
+
+	id, err := uuid.Parse(wrapperMsg.MessageId)
+	if err != nil {
+		return uuid.UUID{}, nil, err
 	}
 
 	switch wrapperMsg.Type {
@@ -28,7 +34,7 @@ func processIncomingMessage(msg []byte) (interface{}, error) {
 		var ack messages.TransferAck
 		err = proto.Unmarshal(wrapperMsg.Payload, &ack)
 		if err != nil {
-			return nil, err
+			return id, nil, err
 		}
 
 		logger.Logger.Debug(
@@ -38,25 +44,25 @@ func processIncomingMessage(msg []byte) (interface{}, error) {
 
 		serverErr := ack.GetError()
 		if serverErr != "" {
-			return fmt.Errorf(serverErr), nil
+			return id, fmt.Errorf(serverErr), nil
 		}
 
-		return ack.GetReceiptId(), nil
+		return id, ack.GetReceiptId(), nil
 
 	// receive file
 	case messages.MessageType_TRANSFER_FILE:
 		var file messages.TransferFile
 		err = proto.Unmarshal(wrapperMsg.Payload, &file)
 		if err != nil {
-			return nil, err
+			return id, nil, err
 		}
 
 		if file.Error != nil {
-			return &common.File{
+			return id, &common.File{
 				Error: fmt.Errorf("error returned by server: %s", *file.Error),
 			}, nil
 		} else {
-			return &common.File{
+			return id, &common.File{
 				Filename: file.Filename,
 				Contents: file.Contents,
 				Proof:    deserializeProof(file.Proof),
@@ -64,7 +70,7 @@ func processIncomingMessage(msg []byte) (interface{}, error) {
 		}
 	}
 
-	return nil, nil
+	return uuid.UUID{}, nil, nil
 }
 
 // deserializeProof transforms a Protobuf serialized proof sent by the server

@@ -35,7 +35,7 @@ func CreateDatabase(dataSourceName string) (*Database, error) {
 	return &Database{db}, nil
 }
 
-// AddRoot adds root hashes to the database
+// AddRootHash adds root hashes to the database
 func (db *Database) AddRootHash(ReceiptId string, RootHash []byte) error {
 	query := `
 		INSERT INTO FILES (ReceiptId, RootHash)

@@ -43,7 +43,7 @@ func uploadFilesHandler(
 		form := r.MultipartForm
 		files := form.File["file"]
 
-		uploadedFiles := []common.File{}
+		var uploadedFiles []common.File
 
 		for _, fileHeader := range files {
 			file, err := fileHeader.Open()

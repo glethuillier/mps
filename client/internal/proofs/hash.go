@@ -10,7 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// emptyHash returns the hash corresponding to
+// EmptyHash returns the hash corresponding to
 // an empty value ([]byte{})
 type EmptyHash struct {
 	value []byte
@@ -21,12 +21,12 @@ var (
 	once     sync.Once
 )
 
-type hasher struct {
+type Hasher struct {
 	hash.Hash
 }
 
-func GetHasher(hashAlgorithm hash.Hash) *hasher {
-	return &hasher{
+func GetHasher(hashAlgorithm hash.Hash) *Hasher {
+	return &Hasher{
 		hashAlgorithm,
 	}
 }
@@ -52,7 +52,7 @@ func emptyHash(hashAlgorithm hash.Hash) []byte {
 	return instance.value
 }
 
-func (h *hasher) hashLeaf(file *common.File) ([]byte, error) {
+func (h *Hasher) hashLeaf(file *common.File) ([]byte, error) {
 	h.Reset()
 
 	_, err := h.Write(file.Contents)
@@ -63,7 +63,7 @@ func (h *hasher) hashLeaf(file *common.File) ([]byte, error) {
 	return h.Sum(nil), nil
 }
 
-func (h *hasher) hashConcat(a, b []byte) ([]byte, error) {
+func (h *Hasher) hashConcat(a, b []byte) ([]byte, error) {
 	var err error
 	h.Reset()
 

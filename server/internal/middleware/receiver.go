@@ -55,7 +55,12 @@ func (r *receiver) receiveFiles(
 
 			r.RLock()
 			if len(filesToProcess[file.RootHash]) == len(r.expectedFiles[file.RootHash]) {
-				r.processFiles(file.RootHash, filesToProcess[file.RootHash], responsesC)
+				r.processFiles(
+					file.MessageId,
+					file.RootHash,
+					filesToProcess[file.RootHash],
+					responsesC,
+				)
 
 				// discard files in memory
 				filesToProcess[file.RootHash] = nil
@@ -66,6 +71,7 @@ func (r *receiver) receiveFiles(
 }
 
 func (r *receiver) processFiles(
+	messageId uuid.UUID,
 	expectedRootHash string,
 	files []*common.File,
 	responsesC chan interface{},
@@ -123,16 +129,19 @@ func (r *receiver) processFiles(
 			)
 
 			responsesC <- common.TransferAck{
-				Error: err,
+				MessageId: messageId,
+				Error:     err,
 			}
 		} else {
 			responsesC <- common.TransferAck{
+				MessageId: messageId,
 				ReceiptId: receiptId.String(),
 			}
 		}
 
 	case NOT_UNIQUE:
 		responsesC <- common.TransferAck{
+			MessageId: messageId,
 			Error: fmt.Errorf(
 				"these files has already been processed by the server; receipt ID: %s",
 				knownReceiptId,
@@ -141,6 +150,7 @@ func (r *receiver) processFiles(
 
 	case OTHER_ERROR:
 		responsesC <- common.TransferAck{
+			MessageId: messageId,
 			// send a generic error message to the client so that we
 			// do not leak detail about the internal implementation
 			Error: fmt.Errorf(
@@ -150,6 +160,7 @@ func (r *receiver) processFiles(
 
 	case ROOTS_MISMATCH:
 		responsesC <- common.TransferAck{
+			MessageId: messageId,
 			Error: fmt.Errorf(
 				// send a generic error message to client (i.e., do not
 				// specify that this information corresponds to Merkle

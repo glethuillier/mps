@@ -10,7 +10,7 @@ import (
 )
 
 type Tree struct {
-	Hasher hasher
+	Hasher Hasher
 	Root   *node
 }
 

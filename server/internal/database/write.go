@@ -12,7 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// SaveProof saves a receipt ID and the corresponding Merkle tree in the database
+// SaveTree saves a receipt ID and the corresponding Merkle tree in the database
 func (db *Database) SaveTree(receiptId uuid.UUID, tree *common.Tree) error {
 	var err error
 	if err = db.addRootHash(receiptId, tree.RootHash); err != nil {

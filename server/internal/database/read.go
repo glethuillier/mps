@@ -9,7 +9,7 @@ import (
 	"github.com/glethuillier/fvs/server/internal/common"
 )
 
-// IsProofAlreadyPresent checks whether a root hash has already been
+// IsTreeAlreadyPresent checks whether a root hash has already been
 // saved in the database (meaning that the client already sent the
 // files to the server). If a root hash is already present, the function
 // returns the receipt ID corresponding to the root hash.
@@ -20,7 +20,7 @@ func (db *Database) IsTreeAlreadyPresent(rootHash string) (bool, string, error) 
 
 	err := db.QueryRow(query, rootHash).Scan(&receiptID)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return false, "", nil
 		}
 		return false, "", err
@@ -45,7 +45,7 @@ func (db *Database) GetRootHash(receiptId string) (string, error) {
 	return rootHash, nil
 }
 
-// GetProof returns a Merkle tree corresponding to a root hash
+// GetTree returns a Merkle tree corresponding to a root hash
 func (db *Database) GetTree(rootHash string) (*common.Tree, error) {
 	tree := common.Tree{
 		FilenameToHash: make(map[string]string),

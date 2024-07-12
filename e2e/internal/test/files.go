@@ -55,7 +55,7 @@ func randomFileSize(min, max int64) (int64, error) {
 	return randInt.Int64() + min, nil
 }
 
-// generateFiles generates random files and
+// GenerateFiles generates random files and
 // returns their filenames
 func GenerateFiles(testDirectory string, filesCount int) []string {
 	var filenames []string

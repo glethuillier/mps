@@ -32,17 +32,16 @@ func TestBuildMerkleTree(t *testing.T) {
 				{
 					Filename: "abc.txt",
 					Contents: []byte{
-						74, 39, 97, 105, 32, 116, 111, 117, 116, 32, 100, 111, 110,
-						110, 195, 169, 32, 112, 111, 117, 114, 32, 99, 101, 116, 32,
+						10, 195, 169, 32, 112, 111, 117, 114, 32, 99, 101, 116, 32,
 						101, 120, 101, 114, 99, 105, 99, 101, 32, 33, 32, 58, 41,
 					},
 				},
 			},
 			filesExpectedHashes: []string{
 				"70a49087db423f89aeea154a0f961f4aef0e634b286e3fdf35b430403421f031daf301ec0da455e226bcba40720f2147cbb7fa638917ee67a8fc40b143fa5c02",
-				"48e69af2e737b5e6ebd3c129838b8b582bd7bdbdb6ec1c6e99ed311031b3735a819ca2ef5c68bf054891f9ab1928bcae851e943b03d2cd0842ce40b4bc9ceb84",
+				"eb5f59fd391278fa52091e4df383d12cfeaa815f5553a3afd567b250697c6ab5dcae6d8103cf1305a329c848e69ced500433716839ec7bf3af5b3f80a46bc486",
 			},
-			expectedRootHash: "4dfefda1ce283a40b492f1f1e7d234f9e379ecdafaf172cf5a510ef4889bc9697bc63c2426c2456fc628e05db7277baee684a6a844cda178e7943084ea0dc29e",
+			expectedRootHash: "040038907ccb5294981ecd6c653a7c1528844ccfb6a3c62d61f7485c9afc762d18ceefb9ebf873d8e2a3cc656796e0130a8546adced12952772deed871bef649",
 		},
 	}
 
@@ -54,7 +53,7 @@ func TestBuildMerkleTree(t *testing.T) {
 			assert.Equal(t, tree.RootHash, tc.expectedRootHash)
 
 			for i, file := range tc.files {
-				assert.Equal(t, tree.FilenameToHash[file.Filename], tc.filesExpectedHashes[i])
+				assert.Equal(t, tc.filesExpectedHashes[i], tree.FilenameToHash[file.Filename])
 			}
 		})
 	}

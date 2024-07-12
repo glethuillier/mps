@@ -5,7 +5,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// messages from and to the client
 type File struct {
 	MessageId uuid.UUID
 	RootHash  string

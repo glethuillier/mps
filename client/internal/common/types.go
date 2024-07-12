@@ -22,6 +22,6 @@ type DownloadRequest struct {
 	Filename  string
 }
 
-var ErrMismatchingRoots error = errors.New(
+var ErrMismatchingRoots = errors.New(
 	"the request file is corrupted (root hashes do not match)",
 )
