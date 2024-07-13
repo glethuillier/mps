@@ -24,7 +24,7 @@ func processIncomingMessage(msg []byte) (uuid.UUID, interface{}, error) {
 
 	id, err := uuid.Parse(wrapperMsg.MessageId)
 	if err != nil {
-		return uuid.UUID{}, nil, err
+		id = uuid.UUID{}
 	}
 
 	switch wrapperMsg.Type {

@@ -15,8 +15,17 @@ import (
 	"go.uber.org/zap"
 )
 
+type connectionStatus = uint
+
+const (
+	NOT_CONNECTED connectionStatus = iota
+	CONNECTING
+	CONNECTED
+)
+
 type client struct {
 	mu                 sync.RWMutex
+	status             connectionStatus
 	conn               *websocket.Conn
 	url                url.URL
 	messagesToSendC    chan interface{}
@@ -25,17 +34,38 @@ type client struct {
 
 // tryConnect attempts to connect to the server
 // using a backoff strategy
-func (c *client) tryConnect(ctx context.Context) {
+func (c *client) tryConnect() {
+	// if the client is already try to connect to the server,
+	// just wait until it is connected
+	if c.status == CONNECTING {
+		ticker := time.NewTicker(100 * time.Millisecond)
+		defer ticker.Stop()
+
+		for {
+			<-ticker.C
+			if c.conn == nil {
+				continue
+			}
+			if err := c.conn.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
+				continue
+			}
+			return
+		}
+	}
+
 	operation := func() error {
 		logger.Logger.Debug("trying to connect to server")
 
 		err := c.connect()
 		if err != nil {
+			c.status = CONNECTING
 			logger.Logger.Debug(
 				"reconnection attempt failed",
 			)
 			return err
 		}
+
+		c.status = CONNECTED
 		return nil
 	}
 
@@ -51,9 +81,6 @@ func (c *client) tryConnect(ctx context.Context) {
 			zap.Error(err),
 		)
 	}
-
-	go c.handleReads(ctx)
-	go c.handleWrites(ctx)
 
 	logger.Logger.Info("successfully connected")
 }
@@ -79,32 +106,33 @@ func (c *client) handleWrites(ctx context.Context) {
 		// regularly ping the server
 		case <-ticker.C:
 			if c.conn == nil {
-				return
+				c.tryConnect()
+				continue
 			}
-			err := c.conn.WriteMessage(websocket.PingMessage, []byte{})
+			err := c.send(websocket.PingMessage, []byte{})
 			if err != nil {
 				logger.Logger.Error(
 					"write error",
 					zap.Error(err),
 				)
-				c.tryConnect(ctx)
-				return
+				c.tryConnect()
+				continue
 			}
 
 		// send request to server
 		case message := <-c.messagesToSendC:
-			err := c.conn.WriteMessage(websocket.BinaryMessage, message.([]byte))
+			err := c.send(websocket.BinaryMessage, message.([]byte))
 			if err != nil {
 				logger.Logger.Error(
 					"write close",
 					zap.Error(err),
 				)
-				c.tryConnect(ctx)
-				return
+				c.tryConnect()
+				continue
 			}
 
 		case <-ctx.Done():
-			err := c.conn.WriteMessage(
+			err := c.send(
 				websocket.CloseMessage,
 				websocket.FormatCloseMessage(
 					websocket.CloseNormalClosure,
@@ -121,8 +149,19 @@ func (c *client) handleWrites(ctx context.Context) {
 	}
 }
 
+func (c *client) send(messageType int, message []byte) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	return c.conn.WriteMessage(messageType, message)
+}
+
 // handle messages received from the server
 func (c *client) handleReads(ctx context.Context) {
+	c.conn.SetPongHandler(func(appData string) error {
+		return nil
+	})
+
 	for {
 		_, message, err := c.conn.ReadMessage()
 		if err != nil {
@@ -130,8 +169,8 @@ func (c *client) handleReads(ctx context.Context) {
 				"error occurred while reading message from server",
 				zap.Error(err),
 			)
-			c.tryConnect(ctx)
-			return
+			c.tryConnect()
+			continue
 		}
 		id, msg, err := processIncomingMessage(message)
 		if err != nil {
@@ -144,7 +183,6 @@ func (c *client) handleReads(ctx context.Context) {
 		c.mu.RLock()
 		_, ok := c.messagesReceivedMC[id]
 		if !ok {
-			// should never occur at this stage
 			panic("chan map entry has not been initialized")
 		}
 
@@ -180,7 +218,11 @@ func Run(
 		},
 		messagesToSendC:    messagesToSendC,
 		messagesReceivedMC: messagesReceivedMC,
+		status:             NOT_CONNECTED,
 	}
 
-	client.tryConnect(ctx)
+	client.tryConnect()
+
+	go client.handleReads(ctx)
+	go client.handleWrites(ctx)
 }

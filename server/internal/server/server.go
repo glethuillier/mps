@@ -78,7 +78,7 @@ func (c *Client) handleWrites(responsesC chan interface{}) {
 				zap.Error(err),
 			)
 			responsesC <- &common.TransferAck{
-				Error:     err,
+				Error: err,
 			}
 		}
 
